@@ -27,10 +27,6 @@ func createTaskElement(name string) taskElement {
 }
 
 func initialModel() model {
-	// m.AddTask("put on skirt")
-	// m.AddTask("put on thigh highs")
-	// m.AddTask("install go")
-	// m.AddTask("log on discord")
 	tasks := []taskElement{createTaskElement("nothing here...")}
 
 	return model{
