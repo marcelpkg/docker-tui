@@ -31,7 +31,7 @@ func initialModel() model {
 	// m.AddTask("put on thigh highs")
 	// m.AddTask("install go")
 	// m.AddTask("log on discord")
-	tasks := []taskElement{createTaskElement("put on skirt"), createTaskElement("put on thigh highs"), createTaskElement("install go"), createTaskElement("log on discord")}
+	tasks := []taskElement{createTaskElement("nothing here...")}
 
 	return model{
 		tasks:  tasks,
