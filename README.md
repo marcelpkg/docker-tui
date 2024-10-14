@@ -1,7 +1,7 @@
 <div align="center">
   <h1>docker-tui</h1>
 
-###NOTE: docker-tui is not done yet and isn't functional for use.
+### NOTE: docker-tui is not done yet and isn't functional for use.
   
 docker-tui is a terminal interface for easily managing docker containers running on your machine.
 
