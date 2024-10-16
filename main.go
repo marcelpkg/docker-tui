@@ -9,31 +9,15 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type taskElement struct {
-	name        string
-	description string
-	done        bool
-}
-
 type model struct {
-	tasks  []taskElement // 0: task
-	cursor int
-}
-
-func createTaskElement(name string) taskElement {
-	return taskElement{
-		name:        name,
-		description: "",
-		done:        false,
-	}
+	containers []docker.Container
+	cursor     int
 }
 
 func initialModel() model {
-	tasks := []taskElement{createTaskElement("nothing here...")}
-
 	return model{
-		tasks:  tasks,
-		cursor: 0,
+		containers: make([]docker.Container, 0),
+		cursor:     0,
 	}
 }
 
@@ -42,6 +26,7 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.containers = docker.GetContainers()
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
@@ -56,12 +41,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "k", "down":
-			if m.cursor < len(m.tasks)-1 {
+			if m.cursor < len(m.containers)-1 {
 				m.cursor++
 			}
 
 		case "enter", " ":
-			m.tasks[m.cursor].done = !m.tasks[m.cursor].done
+			target := m.containers[m.cursor]
+			if target.IsRunning() {
+				target.Pause()
+			} else {
+				target.Resume()
+			}
+
 		}
 	}
 
@@ -94,15 +85,15 @@ func (m model) View() string {
 		for i, element := range containers {
 			selected := " "
 			if i == m.cursor {
-				selected = ">"
+				selected = "→ "
 			}
 
 			status := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FF3344")).Render("✘ Stopped")
+				Foreground(lipgloss.Color("#FF3344")).Render("✘ Paused ")
 
 			if element.State == "running" {
 				status = lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#33FF55")).Render("✓ Running")
+					Foreground(lipgloss.Color("#33FF55")).Render("✓ Running ")
 			}
 
 			display += fmt.Sprintln(selected + status + element.Names[0])
