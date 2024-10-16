@@ -8,7 +8,7 @@ import (
 )
 
 // Struct with all data of a Docker container
-type tuiContainer struct {
+type Container struct {
 	Names   []string
 	Image   string
 	ID      string
@@ -29,8 +29,8 @@ func GetClient() *client.Client {
 
 // Get current running Docker containers
 // This method also saves all the containers to the Docker struct, if ever needed
-// Returns an array of the []tuiContainer
-func GetContainers() []tuiContainer {
+// Returns an array of the []Container
+func GetContainers() []Container {
 	d := GetClient()
 	defer func(d *client.Client) {
 		err := d.Close()
@@ -44,10 +44,10 @@ func GetContainers() []tuiContainer {
 		log.Fatal(err)
 	}
 
-	var containerList []tuiContainer
+	var containerList []Container
 
 	for _, element := range containers {
-		containerList = append(containerList, tuiContainer{
+		containerList = append(containerList, Container{
 			Names:   element.Names,
 			Image:   element.Image,
 			ID:      element.ID,
@@ -61,9 +61,37 @@ func GetContainers() []tuiContainer {
 }
 
 // c.Stop()
-func (c tuiContainer) Stop() {
+func (c Container) Stop() {
 	err := GetClient().ContainerStop(context.Background(), c.ID, container.StopOptions{})
 	if err != nil {
 		return
 	}
+}
+
+func (c Container) Start() {
+	err := GetClient().ContainerStart(context.Background(), c.ID, container.StartOptions{})
+	if err != nil {
+		return
+	}
+}
+
+func (c Container) Pause() {
+	err := GetClient().ContainerPause(context.Background(), c.ID)
+	if err != nil {
+		return
+	}
+}
+
+func (c Container) Resume() {
+	err := GetClient().ContainerUnpause(context.Background(), c.ID)
+	if err != nil {
+		return
+	}
+}
+
+func (c Container) IsRunning() bool {
+	if c.State == "running" {
+		return true
+	}
+	return false
 }

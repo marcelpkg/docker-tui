@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/docker/docker/client"
 	"log"
 	"os/exec"
 	"testing"
@@ -35,14 +36,21 @@ func stopContainer() {
 }
 
 func TestDocker(t *testing.T) {
-	d := InitDocker()
+	d := GetClient()
+	defer func(d *client.Client) {
+		err := d.Close()
+		if err != nil {
+
+		}
+	}(d)
+
 	var found bool
 
 	buildImage()
 	runContainer()
 	defer stopContainer()
 
-	containers := d.GetContainers()
+	containers := GetContainers()
 
 	for _, container := range containers {
 		if container.Names[0] == "/docker-tui-test" {
