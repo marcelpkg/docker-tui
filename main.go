@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/docker/docker/client"
+	docker "github.com/marcelpkg/docker-tui/api"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -68,54 +70,52 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 var style = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("#F3F3F3")).
-	Border(lipgloss.DoubleBorder(), true, true).
+	Border(lipgloss.RoundedBorder(), true, true).
 	PaddingTop(1).
 	PaddingLeft(4).
 	Width(48)
 
 func (m model) View() string {
-	s := ""
+	display := ""
 
-	for i, element := range m.tasks {
+	d := docker.GetClient()
+	defer func(d *client.Client) {
+		err := d.Close()
+		if err != nil {
 
-		selected := " "
-		if i == m.cursor {
-			selected = ">"
 		}
+	}(d)
 
-		done := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF3344")).Render("✘")
+	containers := docker.GetContainers()
 
-		if element.done {
-			done = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#33FF55")).Render("✓")
+	if len(containers) == 0 {
+		display = "No containers found!\n"
+	} else {
+		for i, element := range containers {
+			selected := " "
+			if i == m.cursor {
+				selected = ">"
+			}
+
+			status := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FF3344")).Render("✘ Stopped")
+
+			if element.State == "running" {
+				status = lipgloss.NewStyle().
+					Foreground(lipgloss.Color("#33FF55")).Render("✓ Running")
+			}
+
+			display += fmt.Sprintln(selected + status + element.Names[0])
 		}
-
-		// > [✓] ↓ Task name
-		s += fmt.Sprintf("%s %s %s\n", selected, done, element.name)
 	}
-
-	return style.Render(s)
-}
-
-func (m *model) AddTask(name string) {
-	newTask := createTaskElement(name)
-
-	m.tasks = append(m.tasks, newTask)
+	return style.Render(display)
 }
 
 func main() {
+	tea.ClearScreen()
 	p := tea.NewProgram(initialModel())
-
 	_, err := p.Run()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
-
-// Order of events:
-// tea.NewProgram(model)
-// Error checked
-// Initialise with .Init()
-// On an event Update() is run (of the model)
-// After an Update() finishes, View() is ran.

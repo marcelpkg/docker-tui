@@ -7,11 +7,6 @@ import (
 	"log"
 )
 
-type Docker struct {
-	Cli        *client.Client
-	Containers []tuiContainer
-}
-
 // Struct with all data of a Docker container
 type tuiContainer struct {
 	Names   []string
@@ -24,24 +19,27 @@ type tuiContainer struct {
 
 // Get an instance of the Docker struct
 
-// Example:
-// d := InitDocker()
-func InitDocker() Docker {
+func GetClient() *client.Client {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return Docker{
-		Cli:        cli,
-		Containers: []tuiContainer{},
-	}
+	return cli
 }
 
 // Get current running Docker containers
 // This method also saves all the containers to the Docker struct, if ever needed
 // Returns an array of the []tuiContainer
-func (d *Docker) GetContainers() []tuiContainer {
-	containers, err := d.Cli.ContainerList(context.Background(), container.ListOptions{})
+func GetContainers() []tuiContainer {
+	d := GetClient()
+	defer func(d *client.Client) {
+		err := d.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(d)
+
+	containers, err := d.ContainerList(context.Background(), container.ListOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,6 +57,13 @@ func (d *Docker) GetContainers() []tuiContainer {
 		})
 	}
 
-	d.Containers = containerList
 	return containerList
+}
+
+// c.Stop()
+func (c tuiContainer) Stop() {
+	err := GetClient().ContainerStop(context.Background(), c.ID, container.StopOptions{})
+	if err != nil {
+		return
+	}
 }
