@@ -2,10 +2,11 @@ package docker
 
 import (
 	"fmt"
-	"github.com/docker/docker/client"
 	"log"
 	"os/exec"
 	"testing"
+
+	"github.com/docker/docker/client"
 )
 
 func buildImage() {
@@ -28,7 +29,7 @@ func runContainer() {
 
 func stopContainer() {
 	fmt.Println("Attempting to stop container...")
-	err := exec.Command("docker", "stop", "docker-tui-test").Run()
+	err := exec.Command("docker", "kill", "docker-tui-test").Run() // killing just for this test because its faster and marcel is gonna refactor!! 
 	if err != nil {
 		log.Fatalf("Failed to stop container: %v", err)
 	}

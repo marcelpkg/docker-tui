@@ -2,9 +2,11 @@ package docker
 
 import (
 	"context"
+	"fmt"
+	"log"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"log"
 )
 
 // Struct with all data of a Docker container
@@ -28,18 +30,20 @@ func GetClient() *client.Client {
 }
 
 // Get current running Docker containers
-// This method also saves all the containers to the Docker struct, if ever needed
 // Returns an array of the []Container
 func GetContainers() []Container {
 	d := GetClient()
-	defer func(d *client.Client) {
-		err := d.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(d)
+	defer d.Close()
+	// defer func(d *client.Client) {
+	// 	println("closing getcontaitners")
+	// 	err := d.Close()
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// }(d)
+	fmt.Println(d)
 
-	containers, err := d.ContainerList(context.Background(), container.ListOptions{})
+	containers, err := d.ContainerList(context.Background(), container.ListOptions{All:true})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,8 +94,5 @@ func (c Container) Resume() {
 }
 
 func (c Container) IsRunning() bool {
-	if c.State == "running" {
-		return true
-	}
-	return false
+	return c.State == "running"
 }
