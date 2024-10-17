@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/docker/docker/api/types/container"
@@ -41,7 +40,6 @@ func GetContainers() []Container {
 	// 		log.Fatal(err)
 	// 	}
 	// }(d)
-	fmt.Println(d)
 
 	containers, err := d.ContainerList(context.Background(), container.ListOptions{All:true})
 	if err != nil {
