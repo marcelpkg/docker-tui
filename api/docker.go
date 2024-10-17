@@ -41,7 +41,7 @@ func GetContainers() []Container {
 	// 	}
 	// }(d)
 
-	containers, err := d.ContainerList(context.Background(), container.ListOptions{All:true})
+	containers, err := d.ContainerList(context.Background(), container.ListOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
