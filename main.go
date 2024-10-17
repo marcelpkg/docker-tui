@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/docker/docker/client"
 	docker "github.com/marcelpkg/docker-tui/api"
 
@@ -46,6 +47,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "enter", " ":
+			if (len(m.containers) == 0) { break }
+
 			target := m.containers[m.cursor]
 			if target.IsRunning() {
 				target.Pause()
