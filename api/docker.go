@@ -19,7 +19,6 @@ type Container struct {
 }
 
 // Get an instance of the Docker struct
-
 func GetClient() *client.Client {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -93,4 +92,15 @@ func (c Container) Resume() {
 
 func (c Container) IsRunning() bool {
 	return c.State == "running"
+}
+
+func (c Container) Rename(name string) {
+	err := GetClient().ContainerRename(context.Background(), c.ID, name)
+	if err != nil {
+		return
+	}
+}
+
+func (c Container) Attach() {
+	GetClient().ContainerAttach(context.Background(), c.ID, container.AttachOptions{})
 }

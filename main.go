@@ -45,17 +45,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.containers)-1 {
 				m.cursor++
 			}
-
-		case "enter", " ":
-			if (len(m.containers) == 0) { break }
-
+		case "t", " ":
 			target := m.containers[m.cursor]
 			if target.IsRunning() {
 				target.Pause()
 			} else {
 				target.Resume()
 			}
-
 		}
 	}
 
@@ -94,7 +90,7 @@ func (m model) View() string {
 			status := lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FF3344")).Render("✘ Paused ")
 
-			if element.State == "running" {
+			if element.IsRunning() {
 				status = lipgloss.NewStyle().
 					Foreground(lipgloss.Color("#33FF55")).Render("✓ Running ")
 			}
@@ -102,6 +98,12 @@ func (m model) View() string {
 			display += fmt.Sprintln(selected + status + element.Names[0])
 		}
 	}
+
+	controlStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#d9d9d9")).Render("\nt - pause/unpause")
+
+	display += controlStyle
+
 	return style.Render(display)
 }
 
