@@ -11,6 +11,9 @@ docker-tui is a terminal interface for easily managing docker containers running
 
 </div>
 
+## Current Preview
+![image](https://github.com/user-attachments/assets/9e0cc2a3-ef16-41ed-87ec-a091cd1c8f47)
+
 ## Installation
 
 ### Requirements
