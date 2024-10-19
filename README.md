@@ -19,6 +19,7 @@ docker-tui is a terminal interface for easily managing docker containers running
 - [Git](https://git-scm.com/downloads/)
 - [Go](https://go.dev/doc/install)
 
+<!--
 ### Linux
 
 1. Clone the repository
@@ -33,3 +34,5 @@ $ cd docker-tui
 ```bash
 $ sudo GOBIN=/usr/local/bin/ go install
 ```
+-->
+
