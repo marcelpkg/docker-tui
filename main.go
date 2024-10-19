@@ -36,12 +36,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
-		case "j", "up":
+		case "k", "up":
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
-		case "k", "down":
+		case "j", "down":
 			if m.cursor < len(m.containers)-1 {
 				m.cursor++
 			}
