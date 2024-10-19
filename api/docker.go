@@ -29,18 +29,13 @@ func GetClient() *client.Client {
 
 // Get current running Docker containers
 // Returns an array of the []Container
-func GetContainers() []Container {
+func GetContainers(showAll bool) []Container {
 	d := GetClient()
 	defer d.Close()
-	// defer func(d *client.Client) {
-	// 	println("closing getcontaitners")
-	// 	err := d.Close()
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }(d)
 
-	containers, err := d.ContainerList(context.Background(), container.ListOptions{})
+    containers, err := d.ContainerList(context.Background(), container.ListOptions{
+        All: showAll,
+    })
 	if err != nil {
 		log.Fatal(err)
 	}

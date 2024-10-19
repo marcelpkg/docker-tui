@@ -16,6 +16,7 @@ type model struct {
 	containers []docker.Container
 	cursor     int
 	window     int
+	showAll    bool
 }
 
 func initialModel() model {
@@ -23,6 +24,7 @@ func initialModel() model {
 		containers: make([]docker.Container, 0),
 		cursor:     0,
 		window:     0,
+		showAll:    false,
 	}
 }
 
@@ -33,7 +35,7 @@ func (m model) Init() tea.Cmd {
 // Updater
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	m.containers = docker.GetContainers()
+	m.containers = docker.GetContainers(m.showAll)
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
@@ -69,7 +71,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			go target.Restart()
 			fmt.Println(target.State)
 
-		case "t", " ":
+		case " ":
+			if m.showAll == true {
+				if m.cursor > len(docker.GetContainers(false)) {
+					m.cursor = 0
+				}
+			}
+			m.showAll = !m.showAll
+
+		case "t":
 			target := m.containers[m.cursor]
 			if target.IsRunning() {
 				target.Pause()
@@ -91,10 +101,6 @@ var style = lipgloss.NewStyle().
 
 func (m model) View() string {
 
-	// m.GetView  |  returns "none" or "<container id>"
-	// if m.GetView == "none" render usuall
-	// if m.GetView == "<container ID> renter new shit"
-
 	display := ""
 
 	d := docker.GetClient()
@@ -105,8 +111,7 @@ func (m model) View() string {
 		}
 	}(d)
 
-	containers := docker.GetContainers()
-	currentContainer := containers[m.cursor]
+	containers := docker.GetContainers(m.showAll)
 
 	if len(containers) == 0 {
 		display = "No containers found!\n"
@@ -144,8 +149,10 @@ func (m model) View() string {
 		}
 	}
 
+	currentContainer := containers[m.cursor]
+
 	controlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#d9d9d9")).Render("\nt - pause/unpause | r - restart")
+		Foreground(lipgloss.Color("#d9d9d9")).Render("\nt - pause/unpause | r - restart | space - show all\n")
 
 	infoDisplay := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).Margin(0, 4).PaddingLeft(4)
 	display += controlStyle
@@ -153,12 +160,14 @@ func (m model) View() string {
 	var infoText string
 	infoText += "Name: " + currentContainer.Names[0] + " | " + currentContainer.State + "\n"
 	infoText += "Uptime: " + currentContainer.Status + "\n"
+	infoText += "Image: " + currentContainer.Image + "\n"
 
 	return style.Render(lipgloss.JoinHorizontal(lipgloss.Left, display, infoDisplay.Render(infoText)))
 }
 
 func main() {
 	tea.ClearScreen()
+
 	p := tea.NewProgram(initialModel())
 	_, err := p.Run()
 	if err != nil {
