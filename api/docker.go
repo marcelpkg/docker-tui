@@ -90,6 +90,13 @@ func (c Container) Resume() {
 	}
 }
 
+func (c Container) Restart() {
+	err := GetClient().ContainerRestart(context.Background(), c.ID, container.StopOptions{})
+	if err != nil {
+		return
+	}
+}
+
 func (c Container) IsRunning() bool {
 	return c.State == "running"
 }
