@@ -4,18 +4,22 @@ import (
 	"context"
 	"log"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
 // Struct with all data of a Docker container
 type Container struct {
-	Names   []string
-	Image   string
-	ID      string
-	Created int64
-	Status  string
-	State   string
+	Names    []string
+	Image    string
+	ID       string
+	Created  int64
+	Status   string
+	State    string
+	SizeRaw  int64
+	SizeRoot int64
+	Ports    []types.Port
 }
 
 // Get an instance of the Docker struct
@@ -33,9 +37,9 @@ func GetContainers(showAll bool) []Container {
 	d := GetClient()
 	defer d.Close()
 
-    containers, err := d.ContainerList(context.Background(), container.ListOptions{
-        All: showAll,
-    })
+	containers, err := d.ContainerList(context.Background(), container.ListOptions{
+		All: showAll,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,12 +48,15 @@ func GetContainers(showAll bool) []Container {
 
 	for _, element := range containers {
 		containerList = append(containerList, Container{
-			Names:   element.Names,
-			Image:   element.Image,
-			ID:      element.ID,
-			Created: element.Created,
-			Status:  element.Status,
-			State:   element.State,
+			Names:    element.Names,
+			Image:    element.Image,
+			ID:       element.ID,
+			Created:  element.Created,
+			Status:   element.Status,
+			State:    element.State,
+			SizeRaw:  element.SizeRw,
+			SizeRoot: element.SizeRootFs,
+			Ports:    element.Ports,
 		})
 	}
 
@@ -94,6 +101,13 @@ func (c Container) Restart() {
 
 func (c Container) IsRunning() bool {
 	return c.State == "running"
+}
+
+func (c Container) Remove() {
+	err := GetClient().ContainerRemove(context.Background(), c.ID, container.RemoveOptions{})
+	if err != nil {
+		return
+	}
 }
 
 func (c Container) Rename(name string) {

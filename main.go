@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/docker/docker/client"
 	docker "github.com/marcelpkg/docker-tui/api"
 
@@ -59,7 +58,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "s":
-			m.containers[m.cursor].Stop()
+			if m.containers[m.cursor].IsRunning() {
+				go m.containers[m.cursor].Stop()
+			}
+			go m.containers[m.cursor].Start()
 
 		case "j", "down":
 			if m.cursor < len(m.containers)-1 {
@@ -102,6 +104,8 @@ var style = lipgloss.NewStyle().
 func (m model) View() string {
 
 	display := ""
+	infoDisplay := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).Margin(0, 4).PaddingLeft(4)
+	var infoText string
 
 	d := docker.GetClient()
 	defer func(d *client.Client) {
@@ -116,6 +120,7 @@ func (m model) View() string {
 	if len(containers) == 0 {
 		display = "No containers found!\n"
 	} else {
+		currentContainer := containers[m.cursor]
 		for i, element := range containers {
 			selected := " "
 			if i == m.cursor {
@@ -147,20 +152,17 @@ func (m model) View() string {
 
 			display += fmt.Sprintln(selected + status + element.Names[0])
 		}
+
+		controlStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#d9d9d9")).Render("\nt - pause/unpause | r - restart | space - show all\n")
+
+		display += controlStyle
+
+		infoText += "Name: " + currentContainer.Names[0] + " | " + currentContainer.State + "\n"
+		infoText += "Uptime: " + currentContainer.Status + "\n"
+		infoText += "Image: " + currentContainer.Image + "\n"
+
 	}
-
-	currentContainer := containers[m.cursor]
-
-	controlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#d9d9d9")).Render("\nt - pause/unpause | r - restart | space - show all\n")
-
-	infoDisplay := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).Margin(0, 4).PaddingLeft(4)
-	display += controlStyle
-
-	var infoText string
-	infoText += "Name: " + currentContainer.Names[0] + " | " + currentContainer.State + "\n"
-	infoText += "Uptime: " + currentContainer.Status + "\n"
-	infoText += "Image: " + currentContainer.Image + "\n"
 
 	return style.Render(lipgloss.JoinHorizontal(lipgloss.Left, display, infoDisplay.Render(infoText)))
 }
